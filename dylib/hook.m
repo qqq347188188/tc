@@ -229,8 +229,9 @@ static void APInit(void) {
     APLog("autopatch 通吃版 dylib 已加载（IL2CPP API 遍历）");
 
     // il2cpp 必须在 app 启动后才会初始化，等 UIApplication 完成启动再动手
+    // 注意：直接用字符串字面量，避免链接 UIKit 框架（通知名字符串与 UIKit 常量一致）
     gObserver = [[NSNotificationCenter defaultCenter]
-        addObserverForName:UIApplicationDidFinishLaunchingNotification
+        addObserverForName:@"UIApplicationDidFinishLaunchingNotification"
                     object:nil
                      queue:[NSOperationQueue mainQueue]
                 usingBlock:^(NSNotification *note) { (void)note; APApplyAll(); }];
