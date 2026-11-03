@@ -1,0 +1,31 @@
+name: build-dylib
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 编译 arm64 dylib
+        run: |
+          set -e
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "SDK=$SDK"
+          xcrun --sdk iphoneos clang -arch arm64 -dynamiclib -fobjc-arc -O2 \
+            -isysroot "$SDK" -miphoneos-version-min=14.0 \
+            -framework Foundation \
+            -install_name @executable_path/Frameworks/autopatch.dylib \
+            -o autopatch.dylib dylib/hook.m
+          codesign --force --sign - autopatch.dylib
+          lipo -info autopatch.dylib
+          ls -l autopatch.dylib
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: autopatch-dylib
+          path: autopatch.dylib
+          if-no-files-found: error
